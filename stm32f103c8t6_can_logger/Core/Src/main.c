@@ -61,22 +61,12 @@ J1939 j1939_handler;
 FATFS fs;
 FIL fp;
 FRESULT res;
-char buf[4];
-uint8_t buffer[1024] = {0};
-uint8_t bufftemp[128] = {0};
-
-uint32_t offset_data = 0;
-uint32_t offset_id = 0;
-int size = 0;
 UINT brw;
 UINT len = 0;
 UINT written = 0;
-
-uint32_t offset_file = 0;
-bool end_of_file = false;
-bool end_of_msg_ok = false;
-int count = 0;
-bool skip_msg_ack = false;
+uint8_t buffer[1024] = {0};
+uint32_t offset_data = 0;
+uint32_t offset_id = 0;
 
 uint32_t id_can = 0;
 uint8_t data_can[8] = {0};

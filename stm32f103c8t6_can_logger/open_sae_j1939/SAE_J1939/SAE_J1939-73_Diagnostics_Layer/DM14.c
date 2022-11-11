@@ -52,7 +52,7 @@ ENUM_J1939_STATUS_CODES SAE_J1939_Read_Request_DM14(J1939 *j1939, uint8_t DA, ui
 	uint8_t raw_binary_data[number_of_requested_bytes];
 
 	/* Here we ask the flash, eeprom or ram and use pointers */
-	FLASH_EEPROM_RAM_Memory(&number_of_requested_bytes, pointer_type, &command, &pointer, &pointer_extension, &key, raw_binary_data);
+	// FLASH_EEPROM_RAM_Memory(&number_of_requested_bytes, pointer_type, &command, &pointer, &pointer_extension, &key, raw_binary_data);
 
 	/* Prepare a DM15 PGN: 0x00D800 response back to DA */
 	uint16_t number_of_allowed_bytes = number_of_requested_bytes;

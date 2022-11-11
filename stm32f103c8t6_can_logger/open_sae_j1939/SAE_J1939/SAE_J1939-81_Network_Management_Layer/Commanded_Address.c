@@ -9,7 +9,6 @@
 
 /* Layers */
 #include "../SAE_J1939-21_Transport_Layer/Transport_Layer.h"
-#include "../../Hardware/Hardware.h"
 
 /*
  * Send commanded address to another ECU

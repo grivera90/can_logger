@@ -11,10 +11,6 @@
 #include "../ISO_11783/ISO_11783-7_Application_Layer/Application_Layer.h"
 #include "bsp_board.h"
 
-/* perdón */
-extern volatile uint8_t state_machine;
-extern bool skip_msg_ack;
-extern bool end_of_msg_ok;
 /* no volverá a ocurrir */
 
 /* This function should be called all the time, or be placed inside an interrupt listener */
@@ -39,30 +35,6 @@ bool Open_SAE_J1939_Listen_For_Messages(J1939* j1939) {
 			SAE_J1939_Read_Request(j1939, SA, data);
 		else if (id0 == 0x18 && id1 == 0xD9 && DA == j1939->information_this_ECU.this_ECU_address)
 			SAE_J1939_Read_Request_DM14(j1939, SA, data);
-
-		/* Read status from other ECU [ACK] */
-		else if(id0 == 0x18 && id1 == 0xE8 && DA == 0x80)
-		{
-			SAE_J1939_Read_Acknowledgement(j1939, SA, data);
-
-			/* ACK PropA */
-			if(0x00 == j1939->from_other_ecu_acknowledgement.control_byte && PGN_PROPA == j1939->from_other_ecu_acknowledgement.PGN_of_requested_info)
-			{
-				skip_msg_ack = true;
-				state_machine++;
-				if(4 <= state_machine)
-					state_machine = 0;
-			}
-
-			/* ACK end of messaage transport protocol */
-			if(	CONTROL_BYTE_TP_CM_EndOfMsgACK == j1939->from_other_ecu_acknowledgement.control_byte &&
-				PGN_PROPA == j1939->from_other_ecu_acknowledgement.PGN_of_requested_info)
-			{
-				end_of_msg_ok = true;
-			}
-
-		}
-
 		else if (id0 == 0x18 && id1 == 0xD8 && DA == j1939->information_this_ECU.this_ECU_address)
 			SAE_J1939_Read_Response_DM15(j1939, SA, data);
 

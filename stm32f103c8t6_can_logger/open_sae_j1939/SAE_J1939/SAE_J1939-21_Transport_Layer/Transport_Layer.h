@@ -18,9 +18,6 @@
 #include "../SAE_J1939_Enums/Enum_PGN.h"
 #include "../SAE_J1939_Enums/Enum_Send_Status.h"
 
-/* Layers */
-#include "../../Hardware/Hardware.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -37,6 +37,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define DOUBLE_BUFFERS 2
+#define MESSAGES_CAN 128
+#define DOUBLE_BUFFER_SIZE 8 * MESSAGES_CAN // 128 mensajes de 8 bytes CAN
+#define BUFFER_ID_CAN_SIZE (DOUBLE_BUFFER_SIZE / 8)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -60,7 +64,7 @@ FRESULT res;
 char buf[4];
 uint8_t buffer[1024] = {0};
 uint8_t bufftemp[128] = {0};
-uint32_t bufftemp_id[16] = {0};
+
 uint32_t offset_data = 0;
 uint32_t offset_id = 0;
 int size = 0;
@@ -81,10 +85,11 @@ volatile bool is_new_message = false;
 uint32_t menssages = 0;
 
 uint32_t i = 0;
-
-uint32_t double_buffer[2][256];
+uint8_t double_buffer_data[DOUBLE_BUFFERS][DOUBLE_BUFFER_SIZE] = {0};
+uint32_t double_buffer_id[DOUBLE_BUFFERS][BUFFER_ID_CAN_SIZE] = {0};
 uint32_t selected_buffer = 0;
-#define BUFFER double_buffer[selected_buffer^1]
+#define BUFFER_DATA double_buffer_data[selected_buffer^1]
+#define BUFFER_ID double_buffer_id[selected_buffer^1]
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,7 +99,7 @@ static void MX_CAN_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
-int string_format_log(uint8_t *dst_string, uint32_t counts, const uint16_t id, const uint8_t *payload, uint16_t size);
+int string_format_log(uint8_t *dst_string, uint32_t counts, const uint32_t id, const uint8_t *payload, uint16_t size);
 
 /* USER CODE END PFP */
 
@@ -177,19 +182,19 @@ int main(void)
 #else
 	  if(true == is_new_message)
 	  {
+		  is_new_message = false;
+
 		  f_open(&fp, "log_can.txt", FA_OPEN_EXISTING | FA_READ | FA_WRITE);
 		  f_lseek(&fp, f_size(&fp));
 
-		  for(i = 0; i < 16; i++)
+		  for(i = 0; i < MESSAGES_CAN; i++)
 		  {
-			  len = string_format_log(buffer, menssages++, bufftemp_id[i], &bufftemp[0] + i * 8, 8);
+			  len = string_format_log(buffer, menssages++, BUFFER_ID[i], BUFFER_DATA + i * 8, 8);
 			  f_write(&fp, buffer, len, &written);
 		  }
 
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		  f_close(&fp);
-
-		  is_new_message = false;
 	  }
 
 #endif
@@ -384,13 +389,13 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-int string_format_log(uint8_t *dst_string, uint32_t counts, const uint16_t id, const uint8_t *payload, uint16_t size)
+int string_format_log(uint8_t *dst_string, uint32_t counts, const uint32_t id, const uint8_t *payload, uint16_t size)
 {
     uint8_t outstr[64*2] = {0};
     uint8_t * p = outstr;
 
     // ID CAN Format
-    p += sprintf((char *)p, "%d-ID:0x%.8X|", (int)counts, id);
+    p += sprintf((char *)p, "%d-ID:0x%.8X|", (unsigned int)counts, (unsigned int)id);
 
     // Payload CAN Format
     for (uint16_t i = 0; i < size; i++)
@@ -413,15 +418,16 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 #if 0
 	is_new_message =  bsp_can_get_id_data(&id_can, data_can, &data_can_size);
 #else
-	bsp_can_get_id_data(&bufftemp_id[0] + offset_id, &bufftemp[0] + offset_data, &data_can_size);
+	bsp_can_get_id_data(double_buffer_id[selected_buffer] + offset_id, (uint8_t *)double_buffer_data[selected_buffer] + offset_data, &data_can_size);
 
 	offset_data += 8;
 	offset_id += 1;
 
-	if(128 >= offset_data && 16 >= offset_id)
+	if(MESSAGES_CAN >= offset_data && MESSAGES_CAN >= offset_id)
 	{
 		offset_data = 0;
 		offset_id = 0;
+		selected_buffer ^= 1;
 		is_new_message = true;
 	}
 

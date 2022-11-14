@@ -89,7 +89,7 @@ static void MX_CAN_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
-int string_format_log(uint8_t *dst_string, uint32_t counts, const uint32_t id, const uint8_t *payload, uint16_t size);
+int string_format_log(uint8_t *dst_string, uint32_t counts, const uint32_t id, const uint8_t *payload, const uint16_t size);
 
 /* USER CODE END PFP */
 
@@ -379,9 +379,9 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-int string_format_log(uint8_t *dst_string, uint32_t counts, const uint32_t id, const uint8_t *payload, uint16_t size)
+int string_format_log(uint8_t *dst_string, uint32_t counts, const uint32_t id, const uint8_t *payload, const uint16_t size)
 {
-    uint8_t outstr[64*2] = {0};
+    uint8_t outstr[1024] = {0};
     uint8_t * p = outstr;
 
     // ID CAN Format
@@ -413,7 +413,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	offset_data += 8;
 	offset_id += 1;
 
-	if(MESSAGES_CAN >= offset_data && MESSAGES_CAN >= offset_id)
+	if(MESSAGES_CAN >= offset_id)
 	{
 		offset_data = 0;
 		offset_id = 0;

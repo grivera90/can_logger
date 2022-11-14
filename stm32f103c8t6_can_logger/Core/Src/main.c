@@ -408,12 +408,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 #if 0
 	is_new_message =  bsp_can_get_id_data(&id_can, data_can, &data_can_size);
 #else
-	bsp_can_get_id_data(double_buffer_id[selected_buffer] + offset_id, (uint8_t *)double_buffer_data[selected_buffer] + offset_data, &data_can_size);
+	bsp_can_get_id_data((uint32_t *)&double_buffer_id[selected_buffer] + offset_id, (uint8_t *)&double_buffer_data[selected_buffer] + offset_data, &data_can_size);
 
 	offset_data += 8;
 	offset_id += 1;
 
-	if(MESSAGES_CAN >= offset_id)
+	if(MESSAGES_CAN <= offset_id)
 	{
 		offset_data = 0;
 		offset_id = 0;
